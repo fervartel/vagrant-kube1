@@ -5,8 +5,8 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-16.04"
   config.vm.hostname = "kube1"
-  config.vm.network "private_network", type: "dhcp"  
-  # config.vm.network "private_network", ip: "172.28.128.3"  
+  config.vm.network "private_network", ip: "10.0.0.4"  
+  #config.vm.network "private_network", type: "dhcp"  
 
 # VirtualBox specific
   config.vm.provider "virtualbox" do |vb|
