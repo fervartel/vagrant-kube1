@@ -51,18 +51,14 @@ Vagrant.configure("2") do |config|
   git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
   echo "Copying the default .zshrc config file"
   cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+  echo "Changing the Oh_My_zsh theme"
+  sed -i 's/robbyrussell/agnoster/g' ~/.zshrc
 SHELL
 
 config.vm.provision "shell", inline:
   <<-SHELL
     echo "Changing the vagrant user's shell to use zsh"
     chsh -s /bin/zsh vagrant
-  SHELL
-
-  config.vm.provision "shell", privileged: false, inline:
-  <<-SHELL
-    echo "Changing the Oh_My_zsh theme"
-    sed -i 's/robbyrussell/agnoster/g' ~/.zshrc
   SHELL
 ############################################################
 end
