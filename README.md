@@ -13,8 +13,8 @@ https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 
 ## Required config (as root)
-cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
+cat <<EOF >/etc/apt/sources.list.d/kubernetes.list  
+deb https://apt.kubernetes.io/ kubernetes-xenial main  
 EOF
 
 ## Main packages installation (as root)
@@ -44,15 +44,15 @@ EOF
 ## Tokens in Master node can be retrieved using:
  - kubeadm token list
 
-## In a non-prod env, slave nodes can join using below command to skip the 
-- kubeadm join --discovery-token-unsafe-skip-ca-verification --token=<token> <master-ip>:<master-port>
+    In a non-prod env, slave nodes can join using below command to skip the token verification
+- kubeadm join --discovery-token-unsafe-skip-ca-verification --token="token" "master-ip":"master-port"
 
 ## Installing a pod network add-on (Calico in this case)
 - kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
 - kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
 
 ## Confirm pod network is up and running
--kubectl get pods -o wide --all-namespaces
+- kubectl get pods -o wide --all-namespaces
 
 ## Enable scheduling pods in master node
 - kubectl taint nodes --all node-role.kubernetes.io/master-
