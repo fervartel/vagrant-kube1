@@ -52,36 +52,36 @@ SCRIPT
 
 # Basic Config
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-18.04"
-  config.vm.hostname = "kube1"
-  config.vm.network "private_network", ip: "10.0.0.4"  
-  #config.vm.network "private_network", type: "dhcp"  
+config.vm.box = "bento/ubuntu-18.04"
+config.vm.hostname = "kube1"
+config.vm.network "private_network", ip: "10.0.0.4"  
+#config.vm.network "private_network", type: "dhcp"  
 
 # VirtualBox specific
-  config.vm.provider "virtualbox" do |vb|
-	vb.name = "vagrant-kube1"
-  vb.memory = "2048"
-	vb.cpus = 2
-  end
+config.vm.provider "virtualbox" do |vb|
+vb.name = "vagrant-kube1"
+vb.memory = "2048"
+vb.cpus = 2
+end
   
 ############################################################
- # Provisioning VM
- config.vm.provision "shell", inline: $script
+# Provisioning VM
+config.vm.provision "shell", inline: $script
 
- config.vm.provision "shell", privileged: false, inline:
- <<-SHELL
- echo "CLONING OH MY ZSH FROM THE GIT REPO" 
- git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
- echo "COPYING THE DEFAULT .ZSHRC CONFIG FILE"
- cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
- echo "CHANGING THE OH_MY_ZSH THEME"
- sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' ~/.zshrc  
- SHELL
+config.vm.provision "shell", privileged: false, inline:
+<<-SHELL
+echo "CLONING OH MY ZSH FROM THE GIT REPO" 
+git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
+echo "COPYING THE DEFAULT .ZSHRC CONFIG FILE"
+cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+echo "CHANGING THE OH_MY_ZSH THEME"
+sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' ~/.zshrc  
+SHELL
 
 config.vm.provision "shell", inline:
- <<-SHELL
- echo "CHANGING THE VAGRANT USER'S SHELL TO USE ZSH"
- chsh -s /bin/zsh vagrant
- SHELL
+<<-SHELL
+echo "CHANGING THE VAGRANT USER'S SHELL TO USE ZSH"
+chsh -s /bin/zsh vagrant
+SHELL
 ############################################################
 end
