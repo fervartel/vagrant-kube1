@@ -5,7 +5,24 @@
 ### DETAILED INSTRUCTIONS IN README.md ###
 ##########################################
 
-$script = <<-SCRIPT 
+# Basic Config
+Vagrant.configure("2") do |config|
+config.vm.box = "bento/ubuntu-18.04"
+config.vm.hostname = "kube1"
+config.vm.network "private_network", ip: "10.0.0.4"  
+#config.vm.network "private_network", type: "dhcp"  
+
+# VirtualBox specific
+config.vm.provider "virtualbox" do |vb|
+vb.name = "vagrant-kube1"
+vb.memory = "2048"
+vb.cpus = 2
+end
+  
+############################################################
+# Provisioning VM
+config.vm.provision "shell", inline:
+<<-SHELL
 echo "INSTALLING BASE PACKAGES"
 apt-get update
 apt-get install -y \
@@ -47,26 +64,8 @@ apt-mark hold kubelet kubeadm kubectl
 echo "KUBERNETES - KUBELET REQUIRES SWAP OFF"
 swapoff -a
 echo "KUBERNETES - KEEP SWAP OFF AFTER REBOOT"
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-SCRIPT
-
-# Basic Config
-Vagrant.configure("2") do |config|
-config.vm.box = "bento/ubuntu-18.04"
-config.vm.hostname = "kube1"
-config.vm.network "private_network", ip: "10.0.0.4"  
-#config.vm.network "private_network", type: "dhcp"  
-
-# VirtualBox specific
-config.vm.provider "virtualbox" do |vb|
-vb.name = "vagrant-kube1"
-vb.memory = "2048"
-vb.cpus = 2
-end
-  
-############################################################
-# Provisioning VM
-config.vm.provision "shell", inline: $script
+sed -i '/ swap / s/^/#/' /etc/fstab
+SHELL
 
 config.vm.provision "shell", privileged: false, inline:
 <<-SHELL
