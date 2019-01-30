@@ -11,6 +11,11 @@ The objective of this vagrant file is to spin up and provision a VirtualBox VM w
 - Shell: ZShell + Oh My SZh (only for fun)
 - Basic Packages: GIT, Docker 18.06, Kubelet, Kubeadm and Kubectl
 
+# Requirements
+
+- [VirtualBox](https://www.virtualbox.org/)
+- [Vagrant](https://www.vagrantup.com/downloads.html)
+
 # Advantages
 The main advantage of using vagrant for this kind of testing environment is that it enables us to us a completely isolated VM which can be built, destroyed and re-built in a matter of minutes.
 
