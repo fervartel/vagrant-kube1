@@ -1,51 +1,21 @@
 # Kubernetes cluster setup:
 https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/
 
-## Prerequisite (as root)
-``` bash
-apt-get update && apt-get install -y
-apt-transport-https curl
-```
+# Objectives
+The objective of this vagrant file is to spin up and provision a VirtualBox VM with the following especifications:
 
-## Optional -  Update hosts file
-``` bash
-vi /etc/hosts
-10.0.0.4 kube1
-```
+- OS: ubuntu-18.04
+- CPU: 2
+- Memory: 2 GB
+- Private IP: 10.0.0.4
+- Shell: ZShell + Oh My SZh (only for fun)
+- Basic Packages: GIT, Docker 18.06, Kubelet, Kubeadm and Kubectl
 
-## Installation Key (as root)
-``` bash
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-```
+# Advantages
+The main advantage of using vagrant for this kind of testing environment is that it enables us to us a completely isolated VM which can be built, destroyed and re-built in a matter of minutes.
 
-## Required config (as root)
-``` bash
-cat <<EOF >/etc/apt/sources.list.d/kubernetes.list  
-deb https://apt.kubernetes.io/ kubernetes-xenial main  
-EOF
-```
-
-## Main packages installation (as root)
-```bash
-apt-get update
-apt-get install -y kubelet kubeadm kubectl
-apt-mark hold kubelet kubeadm kubectl
-```
-> "apt-mark hold" marks those packages for disabling upgrades via apt
-
-## kubelet requires swap off (as root)
-``` bash
-swapoff -a
-```
-
-## Keep swap off after reboot (as root)
-``` bash
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-```
-
----
-<font size ="4"> **End of common steps for both MASTER and SLAVE nodes**</font>
-___  
+# Scope of provisioning
+This vagrant script is mostly intended for the OS build, base applications and core components installation required for rolling out a Kubernetes node. This node can later become a **Master node** or a **Worker node** using instructions provided below.
 
 # MASTER Node setup
 
@@ -63,7 +33,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 ## Take note of the kubeadm join output. It'll be required to add nodes into the cluster
 ``` bash
-kubeadm join --token "token" "master-ip":"master-port"…
+kubeadm join "master-ip":"master-port" --token "token" --discovery-token-ca-cert-hash "hash"
 ```
 
 ## Tokens in Master node can be retrieved using:
@@ -71,7 +41,7 @@ kubeadm join --token "token" "master-ip":"master-port"…
 kubeadm token list
 ```
 
-In a non-prod env, slave nodes can join using below command to skip the token verification:
+In a non-prod environment, slave nodes can join using below command to skip the token verification:
 ``` bash
 kubeadm join --discovery-token-unsafe-skip-ca-verification --token="token" "master-ip":"master-port"
 ```
@@ -93,13 +63,13 @@ kubectl get pods -o wide --all-namespaces
 kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
 
-## Deploy Kubernetes Dashboard
+## Deploy Kubernetes Dashboard (Optional - Recommended)
 https://github.com/kubernetes/dashboard
 ``` bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
 ```
 
-## Expose dashboard to external clients
+## Expose dashboard for external access
 https://github.com/kubernetes/dashboard/wiki/Accessing-Dashboard---1.7.X-and-above
 
 1) Check dashboard before exposing it externally:
@@ -110,28 +80,27 @@ https://github.com/kubernetes/dashboard/wiki/Accessing-Dashboard---1.7.X-and-abo
 	``` bash
 	kubectl -n kube-system edit service kubernetes-dashboard
 	```
-3) Change type: ClusterIP to type: NodePort
-4) Check what port the dashboad was exposed: 
+3) Change `type: ClusterIP` to `type: NodePort`
+
+4) Check what port the dashboad was exposed at: 
  	``` bash
 	kubectl -n kube-system get service kubernetes-dashboard
 	```
-5) Access it from another machine like:  
-	https://10.0.0.4/"port"
 
-## Dashboard UI
-http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/
+5) Generate token to access dashboard
+	```bash
+	kubectl create serviceaccount dashboard -n default
 
-## Generate token to access dashboard
-```bash
-kubectl create serviceaccount dashboard -n default
+	kubectl create clusterrolebinding dashboard-admin -n default \
+	--clusterrole=cluster-admin \
+	--serviceaccount=default:dashboard
 
-kubectl create clusterrolebinding dashboard-admin -n default \
---clusterrole=cluster-admin \
---serviceaccount=default:dashboard
+	kubectl get secret $(kubectl get serviceaccount dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
+	```
+	Copy resulting token and paste it in the kubernetes dashboard prompt to sign in.
 
-kubectl get secret $(kubectl get serviceaccount dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
-```
-Copy resulting token and paste it in the kubernetes dashboard prompt to sign in.
+6) Access the dashboard from another machine like (i.e. Host machine):  
+	https://10.0.0.4/"dashboard-port"
 
 # SLAVE Node setup
 
@@ -140,7 +109,7 @@ Copy resulting token and paste it in the kubernetes dashboard prompt to sign in.
 	```bash
 	kubeadm join "master-ip":"master-port" --token "token" --discovery-token-ca-cert-hash "hash"
 	```
-	If token expired, use below command in the master node:
+	If token expired, use below command in the master node to create a new one:
 	``` bash
 	kubeadm token create
 	```
@@ -149,8 +118,7 @@ Copy resulting token and paste it in the kubernetes dashboard prompt to sign in.
 	openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | \
    openssl dgst -sha256 -hex | sed 's/^.* //'
 	```
-2) Check with the new node using below command in the master node:
+2) Check the new node using below command in the master node:
 	``` bash
 	kubectl get nodes
 	```
-3) Check the new node in the dashboard
