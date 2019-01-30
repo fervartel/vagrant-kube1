@@ -1,4 +1,4 @@
-# Kubernetes cluster setup:
+# Kubernetes cluster setup
 https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/
 
 # Objectives
